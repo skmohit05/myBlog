@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Post;
+use Session;
 
 class PostController extends Controller
 {
@@ -14,7 +15,11 @@ class PostController extends Controller
      */
     public function index()
     {
-        //
+        // create a variable  and store all the blog posts in it from hte database
+        $posts = Post::all();
+
+        //return a view
+        return view('posts.index')->withPosts($posts);
     }
 
     /**
@@ -48,6 +53,7 @@ class PostController extends Controller
 
         $post->save();
 
+        Session::flash('success', 'the blog post is successfully saved!');
         //redirect to another page
         return redirect()->route('posts.show', $post->id);
     }
@@ -60,7 +66,8 @@ class PostController extends Controller
      */
     public function show($id)
     {
-        //
+        $post = Post::find($id);    //Here Post is existing model
+        return view('posts.show')->withPost($post); //show request in post controller
     }
 
     /**
@@ -71,7 +78,11 @@ class PostController extends Controller
      */
     public function edit($id)
     {
-        //
+        // find the post in the database and save as variable
+        $post = Post::find($id);
+
+        // return the view and pass in the variable we previously created
+        return view('posts.edit')->withPost($post);
     }
 
     /**
@@ -83,7 +94,23 @@ class PostController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        //validate the data
+        $this->validate($request, array(
+          'title' => 'required|max:255',
+          'body'  => 'required'
+      ));
+
+        //save the data to datbase
+        $post = Post::find($id);  // find the existing row of the existing post
+        $post->title = $request->input('title');     // data coming from the changed form is coming through request
+        $post->body = $request->input('body');
+        $post->save();
+
+        //set flash data with success message
+        Session::flash('success', 'This post was successfully saved.');
+
+        //redirect with flash data to posts.show
+        return redirect()->route('posts.show', $post->id);
     }
 
     /**
