@@ -8,6 +8,11 @@ use Session;
 
 class PostController extends Controller
 {
+
+
+   public function __construct(){
+$this->middleware('auth');
+   }
     /**
      * Display a listing of the resource.
      *
@@ -16,7 +21,7 @@ class PostController extends Controller
     public function index()
     {
         // create a variable  and store all the blog posts in it from hte database
-        $posts = Post::all();
+        $posts = Post::orderBy('id', 'desc')->paginate(10);  //orderBy for reversing
 
         //return a view
         return view('posts.index')->withPosts($posts);
@@ -43,12 +48,14 @@ class PostController extends Controller
         // validate the data
         $this->validate($request, array(
           'title' => 'required|max:255',
+          'slug'  => 'required|alpha_dash|min:5|max:255|unique:posts,slug',
           'body'  => 'required'
       ));
 
         //store in the database
         $post = new Post;
         $post->title = $request->title;
+        $post->slug = $request->slug;
         $post->body = $request->body;
 
         $post->save();
@@ -95,14 +102,24 @@ class PostController extends Controller
     public function update(Request $request, $id)
     {
         //validate the data
-        $this->validate($request, array(
-          'title' => 'required|max:255',
-          'body'  => 'required'
-      ));
-
+        // check whether the updated slug is same or different
+        $post = Post::find($id);
+        if($request->input('slug') == $post->slug){
+            $this->validate($request, array(
+            'title' => 'required|max:255',
+            'body'  => 'required'));
+        }
+        else {
+                $this->validate($request, array(
+                'title' => 'required|max:255',
+                'slug'  => 'required|alpha_dash|min:5|max:255|unique:posts,slug',
+                'body'  => 'required'
+                ));
+             }
         //save the data to datbase
         $post = Post::find($id);  // find the existing row of the existing post
         $post->title = $request->input('title');     // data coming from the changed form is coming through request
+        $post->slug  = $request->input('slug');
         $post->body = $request->input('body');
         $post->save();
 
@@ -121,6 +138,9 @@ class PostController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $post = Post::find($id);
+        $post->delete();
+        Session::flash('success', 'the post was successfully deleted');
+        return redirect()->route('posts.index');
     }
 }
