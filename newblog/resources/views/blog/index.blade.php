@@ -1,5 +1,5 @@
 @extends('main')
-
+<?php  $titleTag = htmlspecialchars($post->title); ?>
 @section('title', '|Blog')
 
 @section('content')

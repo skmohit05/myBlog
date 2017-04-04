@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Post;
+use App\Tag;
 use Session;
+use App\Category;
 
 class PostController extends Controller
 {
@@ -34,7 +36,9 @@ $this->middleware('auth');
      */
     public function create()
     {
-       return view('posts.create');
+       $categories = Category::all();
+       $tags = Tag::all();
+       return view('posts.create')->withCategories($categories)->withTags($tags);
     }
 
     /**
@@ -49,6 +53,7 @@ $this->middleware('auth');
         $this->validate($request, array(
           'title' => 'required|max:255',
           'slug'  => 'required|alpha_dash|min:5|max:255|unique:posts,slug',
+          'category_id' => 'required|integer',
           'body'  => 'required'
       ));
 
@@ -56,9 +61,12 @@ $this->middleware('auth');
         $post = new Post;
         $post->title = $request->title;
         $post->slug = $request->slug;
+        $post->category_id = $request->category_id;
         $post->body = $request->body;
 
         $post->save();
+
+        $post->tags()->sync($request->tags, false);
 
         Session::flash('success', 'the blog post is successfully saved!');
         //redirect to another page
@@ -87,9 +95,11 @@ $this->middleware('auth');
     {
         // find the post in the database and save as variable
         $post = Post::find($id);
+        $categories = Category::all();
+        $tags = Tag::all();
 
         // return the view and pass in the variable we previously created
-        return view('posts.edit')->withPost($post);
+        return view('posts.edit')->withPost($post)->withCategories($categories)->withTags($tags);
     }
 
     /**
@@ -113,6 +123,7 @@ $this->middleware('auth');
                 $this->validate($request, array(
                 'title' => 'required|max:255',
                 'slug'  => 'required|alpha_dash|min:5|max:255|unique:posts,slug',
+                'category_id' => 'required|integer',
                 'body'  => 'required'
                 ));
              }
@@ -120,9 +131,16 @@ $this->middleware('auth');
         $post = Post::find($id);  // find the existing row of the existing post
         $post->title = $request->input('title');     // data coming from the changed form is coming through request
         $post->slug  = $request->input('slug');
+        $post->category_id = $request->input('category_id');
         $post->body = $request->input('body');
         $post->save();
 
+        if(isset($request->tags)){
+          $post->tags()->sync($request->tags);
+        }
+        else {
+          $post->tags()->sync(array());
+        }
         //set flash data with success message
         Session::flash('success', 'This post was successfully saved.');
 
@@ -139,6 +157,7 @@ $this->middleware('auth');
     public function destroy($id)
     {
         $post = Post::find($id);
+        $post->tags()->detach();
         $post->delete();
         Session::flash('success', 'the post was successfully deleted');
         return redirect()->route('posts.index');
