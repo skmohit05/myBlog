@@ -9,7 +9,11 @@ use Session;
 
 class CommentsController extends Controller
 {
-    $this->middleware('auth', ['except' => 'store']);
+    public function __construct(){
+
+      $this->middleware('auth', ['except' => 'store']);
+
+    }
     /**
      * Display a listing of the resource.
      *

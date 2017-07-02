@@ -4,11 +4,19 @@
 
 @section('stylesheets')
    {!! Html::style('css/select2.min.css') !!}
+   <script src="https://cloud.tinymce.com/stable/tinymce.min.js"></script>
+   <script>
+     tinymce.init({
+       selector: 'textarea',
+       plugins: 'link code',
+       menubar: false
+     });
+   </script>
 @endsection
 
 @section('content')
 
-<form method="POST" action="{{ route('posts.update', $post->id) }}">
+<form method="POST" action="{{ route('posts.update', $post->id) }}" enctype="multipart/form-data">
       <div class="row">
         <div class="col-md-8">
           <div class="form-group">
@@ -34,6 +42,11 @@
             <option value="{{ $tag->id }}">{{ $tag->name }}</option>
             @endforeach
           </select>
+
+          <div class="form-group ">
+            <label for="featured_image" class="form-spacing-top">Update Featured Image:</label>
+            <input type="file" name="featured_image" class="form-spacing-top">
+          </div>
 
           <div class="form-group ">
             <label for="body" class="form-spacing-top">Body:</label>

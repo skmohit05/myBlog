@@ -33,7 +33,7 @@ Route::get('/logout', 'Auth\LoginController@logout');
    Route::delete('comments/{id}', ['uses' => 'CommentsController@destroy', 'as' => 'comments.destroy']);
    Route::get('comments/{id}/delete', ['uses' => 'CommentsController@delete', 'as' => 'comments.delete']);
 
-Route::get('blog/{slug}', ['as' =>'blog.single', 'uses' => 'blogController@getSingle']); //index page
+Route::get('blog/{slug}', ['uses' => 'BlogController@getSingle', 'as' =>'blog.single']); //index page
 Route::get('blog', ['uses' => 'BlogController@getIndex', 'as' => 'blog.index']);
 Route::get('contact', 'PagesController@getContact');
 Route::post('contact', 'PagesController@postContact');
